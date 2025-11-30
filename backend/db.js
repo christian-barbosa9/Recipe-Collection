@@ -33,9 +33,40 @@ const connect = async () => {
   }
 };
 
-// Export pool and connect function
+// Test database connection with a simple query
+const testConnection = async () => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    console.log('Database connection test successful:', result.rows[0]);
+    return true;
+  } catch (err) {
+    console.error('Database connection test failed:', err);
+    return false;
+  }
+};
+
+// Check if recipes table exists
+const checkTableExists = async () => {
+  try {
+    const result = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'recipes'
+      );
+    `);
+    return result.rows[0].exists;
+  } catch (err) {
+    console.error('Error checking table existence:', err);
+    return false;
+  }
+};
+
+// Export pool and functions
 module.exports = {
   pool,
   connect,
+  testConnection,
+  checkTableExists,
 };
 

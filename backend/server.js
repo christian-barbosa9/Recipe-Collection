@@ -13,8 +13,15 @@ app.use(express.urlencoded({ extended: true }));
 
 // Test database connection
 db.connect()
-  .then(() => {
+  .then(async () => {
     console.log('Database connected successfully');
+    // Run connection test
+    await db.testConnection();
+    // Check if table exists
+    const tableExists = await db.checkTableExists();
+    if (!tableExists) {
+      console.warn('⚠ Warning: recipes table does not exist. Run database.sql to create it.');
+    }
   })
   .catch((err) => {
     console.error('Database connection error:', err);
