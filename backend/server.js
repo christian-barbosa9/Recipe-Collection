@@ -89,6 +89,62 @@ app.get('/api/recipes/:id', async (req, res) => {
   }
 });
 
+// POST create new recipe
+app.post('/api/recipes', async (req, res) => {
+  try {
+    const { title, description, ingredients, instructions, prep_time, cook_time, servings } = req.body;
+
+    // Validation: title is required
+    if (!title || title.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        message: 'Title is required',
+      });
+    }
+
+    // Convert ingredients to array if it's a string or ensure it's an array
+    let ingredientsArray = [];
+    if (ingredients) {
+      if (Array.isArray(ingredients)) {
+        ingredientsArray = ingredients;
+      } else if (typeof ingredients === 'string') {
+        // Split by comma or newline if it's a string
+        ingredientsArray = ingredients.split(/[,\n]/).map(item => item.trim()).filter(item => item);
+      }
+    }
+
+    // Insert new recipe into database
+    const result = await db.pool.query(
+      `INSERT INTO recipes (title, description, ingredients, instructions, prep_time, cook_time, servings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        title.trim(),
+        description || null,
+        ingredientsArray.length > 0 ? ingredientsArray : null,
+        instructions || null,
+        prep_time || null,
+        cook_time || null,
+        servings || null,
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Recipe created successfully',
+      data: result.rows[0],
+    });
+  } catch (err) {
+    console.error('Error creating recipe:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create recipe',
+      message: err.message,
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
