@@ -145,6 +145,90 @@ app.post('/api/recipes', async (req, res) => {
   }
 });
 
+// PUT update existing recipe
+app.put('/api/recipes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, ingredients, instructions, prep_time, cook_time, servings } = req.body;
+
+    // First, check if recipe exists
+    const checkResult = await db.pool.query(
+      'SELECT * FROM recipes WHERE id = $1',
+      [id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Recipe not found',
+        message: `No recipe found with id ${id}`,
+      });
+    }
+
+    // Validation: if title is provided, it cannot be empty
+    if (title !== undefined && (!title || title.trim() === '')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        message: 'Title cannot be empty',
+      });
+    }
+
+    // Convert ingredients to array if provided
+    let ingredientsArray = null;
+    if (ingredients !== undefined) {
+      if (Array.isArray(ingredients)) {
+        ingredientsArray = ingredients.length > 0 ? ingredients : null;
+      } else if (typeof ingredients === 'string') {
+        // Split by comma or newline if it's a string
+        ingredientsArray = ingredients.split(/[,\n]/).map(item => item.trim()).filter(item => item);
+        ingredientsArray = ingredientsArray.length > 0 ? ingredientsArray : null;
+      } else if (ingredients === null) {
+        ingredientsArray = null;
+      }
+    }
+
+    // Update recipe in database
+    // Use existing values if new ones are not provided
+    const existingRecipe = checkResult.rows[0];
+    const result = await db.pool.query(
+      `UPDATE recipes 
+       SET title = COALESCE($1, title),
+           description = COALESCE($2, description),
+           ingredients = COALESCE($3, ingredients),
+           instructions = COALESCE($4, instructions),
+           prep_time = COALESCE($5, prep_time),
+           cook_time = COALESCE($6, cook_time),
+           servings = COALESCE($7, servings)
+       WHERE id = $8
+       RETURNING *`,
+      [
+        title !== undefined ? title.trim() : null,
+        description !== undefined ? (description || null) : null,
+        ingredientsArray,
+        instructions !== undefined ? (instructions || null) : null,
+        prep_time !== undefined ? (prep_time || null) : null,
+        cook_time !== undefined ? (cook_time || null) : null,
+        servings !== undefined ? (servings || null) : null,
+        id,
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: 'Recipe updated successfully',
+      data: result.rows[0],
+    });
+  } catch (err) {
+    console.error('Error updating recipe:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update recipe',
+      message: err.message,
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
