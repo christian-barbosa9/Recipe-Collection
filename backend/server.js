@@ -37,6 +37,58 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
+// GET all recipes
+app.get('/api/recipes', async (req, res) => {
+  try {
+    const result = await db.pool.query(
+      'SELECT * FROM recipes ORDER BY created_at DESC'
+    );
+    res.json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error('Error fetching recipes:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recipes',
+      message: err.message,
+    });
+  }
+});
+
+// GET single recipe by ID
+app.get('/api/recipes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.pool.query(
+      'SELECT * FROM recipes WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Recipe not found',
+        message: `No recipe found with id ${id}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (err) {
+    console.error('Error fetching recipe:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recipe',
+      message: err.message,
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
