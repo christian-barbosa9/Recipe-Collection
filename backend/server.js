@@ -229,6 +229,49 @@ app.put('/api/recipes/:id', async (req, res) => {
   }
 });
 
+// DELETE remove recipe
+app.delete('/api/recipes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // First, check if recipe exists
+    const checkResult = await db.pool.query(
+      'SELECT * FROM recipes WHERE id = $1',
+      [id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Recipe not found',
+        message: `No recipe found with id ${id}`,
+      });
+    }
+
+    // Delete recipe from database
+    await db.pool.query(
+      'DELETE FROM recipes WHERE id = $1',
+      [id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Recipe deleted successfully',
+      data: {
+        id: parseInt(id),
+        deleted: true,
+      },
+    });
+  } catch (err) {
+    console.error('Error deleting recipe:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete recipe',
+      message: err.message,
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
