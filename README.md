@@ -31,42 +31,6 @@ recipe-project/
 └── README.md
 ```
 
-## Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- PostgreSQL database
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-2. Install frontend dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-3. Install backend dependencies:
-   ```bash
-   cd backend
-   npm install
-   ```
-
-### Development
-
-Start the frontend development server:
-```bash
-cd frontend
-npm run dev
-```
-
-Start the backend server:
-```bash
-cd backend
-npm start
-```
-
 ## Features
 
 - ✅ Full CRUD operations

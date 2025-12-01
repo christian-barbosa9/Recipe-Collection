@@ -5,7 +5,7 @@ import './RecipeList.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-function RecipeList() {
+function RecipeList({ onEdit, onDelete }) {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -30,6 +30,30 @@ function RecipeList() {
       setError(err.response?.data?.message || 'Failed to load recipes. Please check if the server is running.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteRecipe = async (recipeId) => {
+    try {
+      const response = await axios.delete(`${API_URL}/recipes/${recipeId}`)
+      
+      if (response.data.success) {
+        await fetchRecipes()
+        if (onDelete) {
+          onDelete()
+        }
+      } else {
+        alert('Failed to delete recipe: ' + (response.data.message || 'Unknown error'))
+      }
+    } catch (err) {
+      console.error('Error deleting recipe:', err)
+      alert('Failed to delete recipe: ' + (err.response?.data?.message || err.message))
+    }
+  }
+
+  const handleEditClick = (recipe) => {
+    if (onEdit) {
+      onEdit(recipe)
     }
   }
 
@@ -60,7 +84,12 @@ function RecipeList() {
     <div className="recipe-list">
       <div className="recipes-grid">
         {recipes.map((recipe) => (
-          <RecipeCard key={recipe.id} recipe={recipe} />
+          <RecipeCard
+            key={recipe.id}
+            recipe={recipe}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteRecipe}
+          />
         ))}
       </div>
     </div>
