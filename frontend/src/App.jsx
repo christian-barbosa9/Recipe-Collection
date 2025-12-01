@@ -1,34 +1,37 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [recipes, setRecipes] = useState([])
+  const [loading, setLoading] = useState(false)
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="app">
+      <header className="app-header">
+        <h1>Recipe Collection</h1>
+        <p>Manage your favorite recipes</p>
+      </header>
+
+      <main className="app-main">
+        <div className="container">
+          {loading ? (
+            <div className="loading">Loading recipes...</div>
+          ) : (
+            <div className="recipes-section">
+              {recipes.length === 0 ? (
+                <div className="empty-state">
+                  <p>No recipes yet. Add your first recipe!</p>
+                </div>
+              ) : (
+                <div className="recipes-grid">
+                  {/* Recipes will be displayed here */}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   )
 }
 
